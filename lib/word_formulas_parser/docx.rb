@@ -1,6 +1,7 @@
 require 'tmpdir'
 require 'digest'
 require 'json'
+require 'securerandom'
 
 module WordFormulasParser
   class Docx
@@ -24,7 +25,6 @@ module WordFormulasParser
 
         # create array with formulas
         tex_text = File.read(tex_file_path)
-        # tex_text.gsub!(/\s+/, "")
 
         formulas = []
 
@@ -62,8 +62,9 @@ module WordFormulasParser
         end
 
         # delete .odt and .tex files
-        File.delete(odt_file_path) if File.exists?(odt_file_path)
-        File.delete(tex_file_path) if File.exists?(tex_file_path)
+        [odt_file_path, tex_file_path].each do |file|
+          File.delete(file) if File.exists?(file)
+        end
       end
 
       private
@@ -73,33 +74,36 @@ module WordFormulasParser
       def formulas_to_png(formulas, background = 'White', density = 700)
         arr_images = []
         temp_path = Dir.mktmpdir
+
         Dir.chdir(temp_path) do
           formulas.each do |formula|
             # random file_name for .tex
-            rand_word = ('a'..'z').to_a.shuffle.join
-            sha1 = Digest::SHA1.hexdigest rand_word
+            sha1 = SecureRandom.hex
 
             # .tex file that must be converted to .png
             File.open("#{sha1}.tex", 'w') do |f|
-              f.write("\\documentclass{article}\n" +
-                       "\\usepackage{amsmath,amssymb}\n" +
-                       "\\begin{document}\n" +
-                       "\\thispagestyle{empty}\n" +
-                       "$$ #{formula} $$\n" +
-                       "\\end{document}\n")
+              f.write("\\documentclass{article}\n \
+                      \\usepackage{mathtext}\n \
+                      \\usepackage[T2A]{fontenc}\n \
+                      \\usepackage[utf8]{inputenc}\n \
+                      \\usepackage[english, russian]{babel}\n \
+                      \\usepackage{amsmath,amssymb}\n \
+                      \\begin{document}\n \
+                      \\thispagestyle{empty}\n \
+                      $$ #{formula} $$\n \
+                      \\end{document}\n")
             end
 
             # create .png from .tex
-            system("latex -interaction=nonstopmode #{sha1}.tex && dvipng -q -T tight -bg #{background} -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
+            sucess = system("latex -interaction=nonstopmode #{sha1}.tex && dvipng -q -T tight -bg #{background} -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
 
             # deleting unused files
-            File.delete("#{sha1}.tex") if File.exists?("#{sha1}.tex")
-            File.delete("#{sha1}.aux") if File.exists?("#{sha1}.aux")
-            File.delete("#{sha1}.dvi") if File.exists?("#{sha1}.dvi")
-            File.delete("#{sha1}.log") if File.exists?("#{sha1}.log")
+            ["#{sha1}.tex", "#{sha1}.aux", "#{sha1}.dvi", "#{sha1}.log"].each do |file|
+              File.delete(file) if File.exist?(file)
+            end
 
             # arr with paths to images
-            arr_images << File.join(temp_path, "#{sha1}.png") if $?.exitstatus.zero?
+            arr_images << File.join(temp_path, "#{sha1}.png") if sucess
           end
         end
         return arr_images
