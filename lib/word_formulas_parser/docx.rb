@@ -14,6 +14,8 @@ module WordFormulasParser
         end
       end
 
+      private
+
       def parse(input_file_path, output_file_path)
         # for formulas like $ %tex_formula% $
         regexp_1 = /\$(.*?)\$/im
@@ -23,6 +25,34 @@ module WordFormulasParser
         #                   \end{equation*}
         regexp_2 = /\\begin{equation\*}(.+?)\\end{equation\*}/im
 
+        tex_file_path = make_tex_file(input_file_path)
+        tex_file_text = File.read(tex_file_path)
+
+        formulas = []
+        formulas += formulas_finder(regexp_1, tex_file_text)
+        formulas += formulas_finder(regexp_2, tex_file_text)
+
+        images = formulas_to_png(formulas)
+
+        result = []
+        images.length.times do |i|
+          result << {img_path: images[i], text: formulas[i]}
+        end
+
+        File.open(output_file_path, 'w') do |f|
+          f.write(JSON.pretty_generate(result))
+        end
+
+        File.delete(tex_file_path) if File.exists?(tex_file_path)
+      end
+
+      # Error management for system commands
+      def raiser(error, sucess)
+        raise error unless sucess
+      end
+
+      # Make converting .docx -> .odt -> .tex
+      def make_tex_file(input_file_path)
         outdir, docx_file_name = File.split(input_file_path)
 
         # create .odt from .docx
@@ -43,43 +73,19 @@ module WordFormulasParser
         sucess = system("w2l #{odt_file_path} #{tex_file_path}")
         raiser(' w2l converting from .odt to .tex failed', sucess)
 
-        # create array with formulas
-        tex_text = File.read(tex_file_path)
-
-        formulas = []
-        formulas += formulas_finder(regexp_1, tex_text)
-        formulas += formulas_finder(regexp_2, tex_text)
-
-        images = formulas_to_png(formulas)
-
-        result = []
-        images.length.times do |i|
-          result << {img_path: images[i], text: formulas[i]}
-        end
-
-        File.open(output_file_path, 'w') do |f|
-          f.write(JSON.pretty_generate(result))
-        end
-
-        # delete .odt and .tex files
-        [odt_file_path, tex_file_path].each do |file|
-          File.delete(file) if File.exists?(file)
-        end
+        File.delete(odt_file_path) if File.exists?(odt_file_path)
+        return tex_file_path
       end
 
-      private
-
-
-      def raiser(error, sucess)
-        raise error unless sucess
-      end
-
-      def formulas_finder(regexp, tex_text)
+      # Finding formula and equations in .tex file
+      def formulas_finder(regexp, tex_file_text)
         formulas = []
-        tex_text.scan(regexp) do |match_arr|
+
+        tex_file_text.scan(regexp) do |match_arr|
           match_arr.each { |formula|  formulas << formula }
         end
-        formulas
+
+        return formulas
       end
 
       # Renders expression to PNG image using <tt>latex</tt> and <tt>dvipng</tt>
