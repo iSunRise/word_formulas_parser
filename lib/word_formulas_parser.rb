@@ -12,12 +12,12 @@ module WordFormulasParser
     end
 
     def self.test_requirements!
-      raise 'LibbreOffice is not installed' if !system("which soffice")
+      raise 'LibbreOffice is not installed' unless system("which soffice")
 
-      raise 'writer2latex is not installed' if !system("which w2l")
+      raise 'writer2latex is not installed' unless system("which w2l")
 
-      raise 'latex is not installed' if !system("which latex")
+      raise 'latex is not installed' unless system("which latex")
 
-      raise 'dvipng is not installed' if !system("which dvipng")
+      raise 'dvipng is not installed' unless system("which dvipng")
     end
 end
