@@ -1,3 +1,8 @@
+## Use
+```ruby
+WordFormulasParser.detect_and_parse(input_file_path)
+```
+
 ## Additional programs
 LibreOffice:
 <br>
@@ -14,11 +19,7 @@ texlive:
 https://www.tug.org/texlive/
 <br>
 or for linux:
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> origin/master
 ```shell
 apt-get install texlive
 ```
@@ -49,8 +50,3 @@ texlive-math-extra
 ```shell
 dpkg -l \*texlive\* | grep ^ii
 ```
-<<<<<<< HEAD
-
-
-=======
->>>>>>> origin/master
