@@ -34,6 +34,8 @@ module WordFormulasParser
 
         images = formulas_to_png(formulas)
 
+        formulas.each { |formula| formula.gsub!("\n", "") }
+
         result = []
         images.length.times do |i|
           result << {img_path: images[i], text: formulas[i]}
@@ -82,7 +84,9 @@ module WordFormulasParser
         formulas = []
 
         tex_file_text.scan(regexp) do |match_arr|
-          match_arr.each { |formula|  formulas << formula }
+          match_arr.each do |formula|
+            formulas << formula
+          end
         end
 
         return formulas
