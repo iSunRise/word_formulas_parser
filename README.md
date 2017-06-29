@@ -9,7 +9,8 @@
     texlive:
     https://www.tug.org/texlive/
     or for linux:
-    ```shell
+    
+    ```
     apt-get install texlive
     ```
 
