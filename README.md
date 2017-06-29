@@ -1,37 +1,47 @@
 ## Additional programs
-    LibreOffice:
-    https://www.libreoffice.org/download/download/
-    
-    writer2latex:
-    http://writer2latex.sourceforge.net/index11.html
-    https://sourceforge.net/projects/writer2latex/
+LibreOffice:
+<br>
+https://www.libreoffice.org/download/download/
 
-    texlive:
-    https://www.tug.org/texlive/
-    or for linux:
+writer2latex:
+<br>
+http://writer2latex.sourceforge.net/index11.html
+<br>
+https://sourceforge.net/projects/writer2latex/
+
+texlive:
+<br>
+https://www.tug.org/texlive/
+<br>
+or for linux:
     
-    ```
-    apt-get install texlive
-    ```
+```shell
+apt-get install texlive
+```
 
 ## Support cyrillic
 
-    Text:
-    sudo apt-get install texlive-lang-cyrillic
-    sudo apt-get install texlive-fonts-recommended
+Text:
+```shell
+sudo apt-get install texlive-lang-cyrillic
+sudo apt-get install texlive-fonts-recommended
+```
+Formulas:
+```shell
+sudo apt-get install texlive-math-extra
+```
 
-    Formulas:
-    sudo apt-get install texlive-math-extra
-
-    Should be packages at least:
-      texlive-base
-      texlive-binaries
-      texlive-fonts-recommended
-      texlive-lang-cyrillic
-      texlive-latex-base
-      texlive-math-extra
+Should be packages at least:
+```shell
+texlive-base
+texlive-binaries
+texlive-fonts-recommended
+texlive-lang-cyrillic
+texlive-latex-base
+texlive-math-extra
+```
 
 ## Full list of packages for latex
-
-    dpkg -l \*texlive\* | grep ^ii
-
+```shell
+dpkg -l \*texlive\* | grep ^ii
+```
