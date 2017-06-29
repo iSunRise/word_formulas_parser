@@ -57,8 +57,7 @@ module WordFormulasParser
 
         # create .odt from .docx
         sucess = system("soffice --headless --convert-to odt --outdir #{outdir} \
-          #{input_file_path}")
-         # binding.pry
+                         #{input_file_path}")
         raiser(' soffice converting from .docx to .odt failed', sucess)
 
         # get name without .docx
@@ -70,7 +69,8 @@ module WordFormulasParser
         tex_file_path = File.expand_path(name + ".tex", outdir)
 
         # create .tex from .odt
-        sucess = system("w2l #{odt_file_path} #{tex_file_path}")
+        sucess = system("w2l -use_ooomath true -image_content ignore \
+                         #{odt_file_path} #{tex_file_path}")
         raiser(' w2l converting from .odt to .tex failed', sucess)
 
         File.delete(odt_file_path) if File.exists?(odt_file_path)
@@ -115,8 +115,8 @@ module WordFormulasParser
 
             # create .png from .tex
             sucess = system("latex -interaction=nonstopmode #{sha1}.tex && \
-                            dvipng -q -T tight -bg #{background} \
-                            -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
+                             dvipng -q -T tight -bg #{background} \
+                             -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
             raiser(' latex converting to .png failed', sucess)
 
             # deleting unused files
