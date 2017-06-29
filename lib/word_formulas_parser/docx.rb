@@ -53,6 +53,21 @@ module WordFormulasParser
         raise error unless sucess
       end
 
+      # Filter for complicated formulas
+      def simple?(formula)
+        operations = 0
+
+        formula.scan(/[\_]|[\^]/) do |match|
+          operations += 0.5
+        end
+
+        formula.scan(/[\+\-\/\*\^]|\\ast|\\frac|\\mathit|\\bullet|\\underset|\\overset|\\cdot|\\div|\\pm|\\mp|\\times|\\otimes|\\circ/) do |match|
+          operations += 1
+        end
+
+        operations < 4 ? true : false
+      end
+
       # Make converting .docx -> .odt -> .tex
       def make_tex_file(input_file_path)
         outdir, docx_file_name = File.split(input_file_path)
@@ -85,6 +100,7 @@ module WordFormulasParser
 
         tex_file_text.scan(regexp) do |match_arr|
           match_arr.each do |formula|
+            next if simple?(formula)
             formulas << formula
           end
         end
