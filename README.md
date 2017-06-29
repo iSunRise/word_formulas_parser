@@ -1,6 +1,17 @@
-## Run as console tool:
+## Additional programs
+    LibreOffice:
+    https://www.libreoffice.org/download/download/
+    
+    writer2latex:
+    http://writer2latex.sourceforge.net/index11.html
+    https://sourceforge.net/projects/writer2latex/
 
-    > bin/parse myfile.docx output.json
+    texlive:
+    https://www.tug.org/texlive/
+    or for linux:
+    ```shell
+    apt-get install texlive
+    ```
 
 ## Support cyrillic
 
