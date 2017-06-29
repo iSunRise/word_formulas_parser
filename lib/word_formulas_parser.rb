@@ -2,12 +2,12 @@ require 'word_formulas_parser/version'
 require 'word_formulas_parser/docx'
 
 module WordFormulasParser
-    def self.detect_and_parse(input_file_path, output_file_path)
+    def self.detect_and_parse(input_file_path)
       test_requirements!
       extencion = File.extname(input_file_path)
       case extencion
       when /\.docx/i
-        then Docx.process(input_file_path, output_file_path)
+        then Docx.process(input_file_path)
       end
     end
 

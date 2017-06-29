@@ -9,4 +9,4 @@ require 'word_formulas_parser'
 # (If you use this, don't forget to add pry to your Gemfile!)
 # require "pry"
 # Pry.start
-WordFormulasParser.detect_and_parse(ARGV[0], ARGV[1])
+WordFormulasParser.detect_and_parse(ARGV[0])

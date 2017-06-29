@@ -6,9 +6,9 @@ require 'securerandom'
 module WordFormulasParser
   class Docx
     class << self
-      def process(input_file_path, output_file_path)
+      def process(input_file_path)
         begin
-          parse(input_file_path, output_file_path)
+          parse(input_file_path)
         rescue => ex
           puts "#{ex.class}:#{ex}"
         end
@@ -16,7 +16,7 @@ module WordFormulasParser
 
       private
 
-      def parse(input_file_path, output_file_path)
+      def parse(input_file_path)
         # for formulas like $ %tex_formula% $
         regexp_1 = /\$(.*?)\$/im
 
@@ -41,11 +41,9 @@ module WordFormulasParser
           result << {img_path: images[i], text: formulas[i]}
         end
 
-        File.open(output_file_path, 'w') do |f|
-          f.write(JSON.pretty_generate(result))
-        end
-
         File.delete(tex_file_path) if File.exists?(tex_file_path)
+
+        return result
       end
 
       # Error management for system commands
