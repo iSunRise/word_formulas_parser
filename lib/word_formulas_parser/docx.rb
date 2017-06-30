@@ -20,9 +20,6 @@ module WordFormulasParser
 
         File.delete(tex_file_path) if File.exists?(tex_file_path)
 
-        puts
-        puts result
-
         result
       end
 
@@ -52,12 +49,6 @@ module WordFormulasParser
 
         tex_file_path
       end
-
-      # def runner(command)
-      #   th = Thread.new do
-      #     system
-      #   end
-      # end
 
     end
   end
