@@ -45,7 +45,7 @@ module WordFormulasParser
         tex_file_path = File.expand_path(name + ".tex", outdir)
 
         # create .tex from .odt
-        sucess = system("w2l -use_ooomath true -image_content ignore \
+        sucess = system("w2l -image_content ignore \
                          #{odt_file_path} #{tex_file_path}")
         File.delete(odt_file_path) if File.exist?(odt_file_path)
         raise 'w2l converting from .odt to .tex failed' unless sucess
