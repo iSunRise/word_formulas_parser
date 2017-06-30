@@ -1,23 +1,24 @@
 require 'word_formulas_parser/version'
 require 'word_formulas_parser/docx'
+require 'word_formulas_parser/tex_formula'
 
 module WordFormulasParser
-    def self.detect_and_parse(input_file_path)
-      test_requirements!
-      extencion = File.extname(input_file_path)
-      case extencion
-      when /\.docx/i
-        then Docx.process(input_file_path)
-      end
+  def self.detect_and_parse(input_file_path)
+    test_requirements!
+    extencion = File.extname(input_file_path)
+    case extencion
+    when /\.docx/i
+      then Docx.parse(input_file_path)
     end
+  end
 
-    def self.test_requirements!
-      raise 'LibbreOffice is not installed' unless system("which soffice")
+  def self.test_requirements!
+    raise 'LibbreOffice is not installed' unless system("which soffice")
 
-      raise 'writer2latex is not installed' unless system("which w2l")
+    raise 'writer2latex is not installed' unless system("which w2l")
 
-      raise 'latex is not installed' unless system("which latex")
+    raise 'latex is not installed' unless system("which latex")
 
-      raise 'dvipng is not installed' unless system("which dvipng")
-    end
+    raise 'dvipng is not installed' unless system("which dvipng")
+  end
 end
