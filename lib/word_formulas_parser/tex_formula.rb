@@ -71,9 +71,7 @@ module WordFormulasParser
             "#{rand_name}.aux",
             "#{rand_name}.dvi",
             "#{rand_name}.log"
-          ].each do |file|
-            File.delete(file) if File.exist?(file)
-          end
+          ].each { |file| File.delete(file) if File.exist?(file) }
 
           raise ' latex converting to .png failed' unless sucess
 
