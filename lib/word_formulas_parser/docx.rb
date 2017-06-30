@@ -18,7 +18,7 @@ module WordFormulasParser
           result << {img_path: image_path, text: formulas[i]}
         end
 
-        File.delete(tex_file_path) if File.exists?(tex_file_path)
+        File.delete(tex_file_path) if File.exist?(tex_file_path)
 
         result
       end
