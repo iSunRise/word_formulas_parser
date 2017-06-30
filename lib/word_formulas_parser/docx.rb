@@ -1,83 +1,44 @@
-require 'tmpdir'
-require 'digest'
-require 'json'
-require 'securerandom'
-
 module WordFormulasParser
   class Docx
-    class << self
-      def process(input_file_path)
-        begin
-          parse(input_file_path)
-        rescue => ex
-          puts "#{ex.class}:#{ex}"
-        end
-      end
 
-      private
+    class << self
 
       def parse(input_file_path)
-        # for formulas like $ %tex_formula% $
-        regexp_1 = /\$(.*?)\$/im
+        tex_file_path = convert_docx_to_tex(input_file_path)
+        tex_text = File.read(tex_file_path)
 
-        # for formulas like \begin{equation*}
-        #                    %tex_formula%
-        #                   \end{equation*}
-        regexp_2 = /\\begin{equation\*}(.+?)\\end{equation\*}/im
-
-        tex_file_path = make_tex_file(input_file_path)
-        tex_file_text = File.read(tex_file_path)
-
-        formulas = []
-        formulas += formulas_finder(regexp_1, tex_file_text)
-        formulas += formulas_finder(regexp_2, tex_file_text)
-
-        images = formulas_to_png(formulas)
+        tex_formula = WordFormulasParser::TexFormula.new(tex_text)
+        formulas = tex_formula.find_formulas
+        image_paths = tex_formula.to_png(formulas)
 
         formulas.each { |formula| formula.gsub!("\n", "") }
 
         result = []
-        images.length.times do |i|
-          result << {img_path: images[i], text: formulas[i]}
+        image_paths.each_with_index do |image_path, i|
+          result << {img_path: image_path, text: formulas[i]}
         end
 
         File.delete(tex_file_path) if File.exists?(tex_file_path)
 
-        return result
+        puts
+        puts result
+
+        result
       end
 
-      # Error management for system commands
-      def raiser(error, sucess)
-        raise error unless sucess
-      end
+      private
 
-      # Filter for complicated formulas
-      def simple?(formula)
-        operations = 0
-
-        formula.scan(/[\_]|[\^]/) do |match|
-          operations += 0.5
-        end
-
-        formula.scan(/[\+\-\/\*\^]|\\ast|\\frac|\\mathit|\\bullet|\\underset|\\overset|\\cdot|\\div|\\pm|\\mp|\\times|\\otimes|\\circ/) do |match|
-          operations += 1
-        end
-
-        operations < 4 ? true : false
-      end
-
-      # Make converting .docx -> .odt -> .tex
-      def make_tex_file(input_file_path)
+      def convert_docx_to_tex(input_file_path)
         outdir, docx_file_name = File.split(input_file_path)
 
         # create .odt from .docx
         sucess = system("soffice --headless --convert-to odt --outdir #{outdir} \
                          #{input_file_path}")
-        raiser(' soffice converting from .docx to .odt failed', sucess)
+        raise 'soffice converting from .docx to .odt failed' unless sucess
 
         # get name without .docx
-        extention = File.extname(docx_file_name)
-        name = docx_file_name.gsub(extention, '')
+        extension = File.extname(docx_file_name)
+        name = docx_file_name.gsub(extension, '')
 
         # create path to odt and tex files
         odt_file_path = File.expand_path(name + ".odt", outdir)
@@ -86,69 +47,17 @@ module WordFormulasParser
         # create .tex from .odt
         sucess = system("w2l -use_ooomath true -image_content ignore \
                          #{odt_file_path} #{tex_file_path}")
-        raiser(' w2l converting from .odt to .tex failed', sucess)
+        File.delete(odt_file_path) if File.exist?(odt_file_path)
+        raise 'w2l converting from .odt to .tex failed' unless sucess
 
-        File.delete(odt_file_path) if File.exists?(odt_file_path)
-        return tex_file_path
+        tex_file_path
       end
 
-      # Finding formula and equations in .tex file
-      def formulas_finder(regexp, tex_file_text)
-        formulas = []
-
-        tex_file_text.scan(regexp) do |match_arr|
-          match_arr.each do |formula|
-            next if simple?(formula)
-            formulas << formula
-          end
-        end
-
-        return formulas
-      end
-
-      # Renders expression to PNG image using <tt>latex</tt> and <tt>dvipng</tt>
-      # returns array with paths to images
-      def formulas_to_png(formulas, background = 'White', density = 700)
-        arr_images = []
-        temp_path = Dir.mktmpdir
-
-        Dir.chdir(temp_path) do
-          formulas.each do |formula|
-            # random file_name for .tex
-            sha1 = SecureRandom.hex
-
-            # .tex file that must be converted to .png
-            File.open("#{sha1}.tex", 'w') do |f|
-              f.write("\\documentclass{article}\n \
-                       \\usepackage{mathtext}\n \
-                       \\usepackage[T2A]{fontenc}\n \
-                       \\usepackage[utf8]{inputenc}\n \
-                       \\usepackage[english, russian]{babel}\n \
-                       \\usepackage{amsmath,amssymb}\n \
-                       \\begin{document}\n \
-                       \\thispagestyle{empty}\n \
-                         $$ #{formula} $$\n \
-                       \\end{document}\n")
-            end
-
-            # create .png from .tex
-            sucess = system("latex -interaction=nonstopmode #{sha1}.tex && \
-                             dvipng -q -T tight -bg #{background} \
-                             -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
-            raiser(' latex converting to .png failed', sucess)
-
-            # deleting unused files
-            ["#{sha1}.tex", "#{sha1}.aux", "#{sha1}.dvi", "#{sha1}.log"].each do |file|
-              File.delete(file) if File.exist?(file)
-            end
-
-            # arr with paths to images
-            arr_images << File.join(temp_path, "#{sha1}.png") if sucess
-          end
-        end
-
-        return arr_images
-      end
+      # def runner(command)
+      #   th = Thread.new do
+      #     system
+      #   end
+      # end
 
     end
   end
