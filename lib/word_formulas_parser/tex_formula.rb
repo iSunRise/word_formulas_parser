@@ -11,7 +11,6 @@ module WordFormulasParser
       @tex_text = tex_text
     end
 
-    # Finding formula and equations in tex text
     def find_formulas
       # for formulas like $ %tex_formula% $
       regexp_1 = /\$(.*?)\$/im
@@ -23,6 +22,7 @@ module WordFormulasParser
 
       formulas = []
 
+      # Finding formula and equations in tex text
       [regexp_1, regexp_2].each do |regexp|
         @tex_text.scan(regexp) do |matches|
           matches.each do |formula|
@@ -44,10 +44,10 @@ module WordFormulasParser
       Dir.chdir(temp_path) do
         formulas.each do |formula|
           # random file_name for .tex
-          sha1 = SecureRandom.hex
+          rand_name = SecureRandom.hex
 
           # .tex file that must be converted to .png
-          File.open("#{sha1}.tex", 'w') do |f|
+          File.open("#{rand_name}.tex", 'w') do |f|
             f.write("\\documentclass{article}\n \
                      \\usepackage{mathtext}\n \
                      \\usepackage[T2A]{fontenc}\n \
@@ -61,18 +61,23 @@ module WordFormulasParser
           end
 
           # create .png from .tex
-          sucess = system("latex -interaction=nonstopmode #{sha1}.tex && \
+          sucess = system("latex -interaction=nonstopmode #{rand_name}.tex && \
                            dvipng -q -T tight -bg #{background} \
-                           -D #{density.to_i} -o #{sha1}.png #{sha1}.dvi")
+                           -D #{density.to_i} -o #{rand_name}.png #{rand_name}.dvi")
 
           # deleting unused files
-          ["#{sha1}.tex", "#{sha1}.aux", "#{sha1}.dvi", "#{sha1}.log"].each do |file|
+          [
+            "#{rand_name}.tex",
+            "#{rand_name}.aux",
+            "#{rand_name}.dvi",
+            "#{rand_name}.log"
+          ].each do |file|
             File.delete(file) if File.exist?(file)
           end
 
           raise ' latex converting to .png failed' unless sucess
 
-          images << File.join(temp_path, "#{sha1}.png") if sucess
+          images << File.join(temp_path, "#{rand_name}.png")
         end
       end
 
@@ -93,14 +98,14 @@ module WordFormulasParser
         operations += 0.5
       end
 
-      # \+                          - addition
-      # \-                          - subtraction
-      # \/, \\div, \\frac, \\times  - division
-      # \*, \\bullet, \\cdot, \\ast - multiplication
-      # \\pm, \\mp                  - ±, ∓
-      # \\otimes                    - ⊗
-      # \\circ                      - ∘
-      operations += formula.scan(/[\+\-\/\*]|\\div|\\frac|\\bullet|\\cdot|\\ast|\\pm|\\mp|\\times|\\otimes|\\circ/).count
+      # \+                                   - addition
+      # \-                                   - subtraction
+      # \/, \\div, \\frac,                   - division
+      # \*, \\bullet, \\cdot, \\ast, \\times - multiplication
+      # \\pm, \\mp                           - ±, ∓
+      # \\otimes                             - tensor product ⊗
+      # \\circ                               - function composition ∘
+      operations += formula.scan(/[\+\-\/\*]|\\div|\\frac|\\bullet|\\cdot|\\ast|\\times|\\pm|\\mp|\\otimes|\\circ/).count
 
       operations
     end
